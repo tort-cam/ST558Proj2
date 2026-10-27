@@ -19,103 +19,102 @@ ui <- fluidPage(
     sidebarPanel(
       h2("Select your numeric variable"),
       
-      selectizeInput(inputId = "xvar",
+      selectizeInput(inputId = "numvar",
                      label = "Numeric Variable",
-                     choiceNames = c("Yards Gained", "Time Under Center", "Yards to Go"),
-                     choicevalues = c("Yards.Gained", "TimeUnder", "ydstogo"),
+                     choices = c("Yards Gained"= "Yards.Gained", "Time Under Center" = "TimeUnder", "Yards to Go" = "ydstogo"),
                      selected = "Yards.Gained"),
       
       h2("Select a category"),
       
       selectizeInput(inputId = "cat",
                      label = "Categorical Variable",
-                     choiceNames = c("All", "Play Type", "Section of Field", "Quarter"),
-                     choiceValues = c("all", "Play_Type", "Location", "qtr"),        
-                     selected = "Yards.Gained"),
+                     choices = c("Play Type" = "PlayType", "Section of Field" = "Location", "Quarter" = "qtr"),
+                     selected = "PlayType"),
       
       h2("Choose a subset of the data:"),
       
       ## Play type
       
-      radioButtons(#inputId = "hhl_corr",
-                   inputId = "play_type",
-                   label = "Type of Play",
-                   choiceNames = c("Pass", "Run", "Both"),
-                   choiceValues = c("Pass", "Run", "Both"),
-                   selected = "Pass"),
+      selectInput(inputId = "play_type",
+                  label = "Type of Play",
+                  choices = c("Pass", "Run", "Both"),
+                  selected = "Pass"),
       
       ## Section of field
       
-      radioButtons(#inputId = "fs_corr",
-                   inputId = "location",
-                   label = "Play Location",
-                   choiceNames = c("All", "Left", "Right", "Middle"),
-                   choiceValues = c("all", "left", "right", "middle"),
-                   selected = "all"),
+      checkboxGroupButtons("location", "Play Location",
+                           choices = c("left", "right", "middle"),
+                           selected = c("left", "right", "middle")),
       
       ## Quarter
       
-      radioButtons(#inputId = "fs_corr",
-                    inputId = "quarter",
-                    label = "Select a Quarter",
-                    choiceNames = c("All", "First", "Second", "Third", "Fourth", "Overtime"),
-                    choiceValues = c("all", "1", "2", "3", "4", "5"),
-                    selected = "all"),
+      radioButtons(inputId = "quarter",
+                   label = "Select a Quarter",
+                   choiceNames = c("All", "First", "Second", "Third", "Fourth", "Overtime"),
+                   choiceValues = c("all", "1", "2", "3", "4", "5"),
+                   selected = "all"),
       
       h2("Subset Numeric Variable (optional)"),
       
-      sliderInput(inputId = "sample_size",
+      sliderInput(inputId = "num_range",
                   label = NULL,
-                  min = 1,
+                  min = 0,
                   max = 100,
-                  value = 100,
-                  step = 1),
+                  value = c(0,100)),
       
-      actionButton("corr_sample","Get a Sample!")
+      actionButton("update","Update plot!") #### NEEDS TO BE CHANGED EVENTUALLy
     ),
     
     mainPanel(
-      plotOutput("plot"),
+      plotOutput("plot")
     )
   )
 )
 
-
-# Define server logic required to draw a histogram
 server <- function(input, output, session) {
   
   filtered_data <- reactive({
     
     d <- plays
     if(input$play_type != "Both") d <- filter(d, PlayType == input$play_type)
-    if(input$location != "all") d <- filter(d, location == input$location)
+    if(input$location != "all") d <- filter(d, Location == input$location)
     if(input$quarter != "all") d <- filter(d, qtr == input$quarter)
     d
   })
   
-  observeEvent(list(input$xvar, filtered_data()), {
-    n <- sum(!is.na(filtered_data()[[input$xvar]]))
-    req(n > 0)
+  observeEvent(list(input$numvar, filtered_data()), {
+    x <- filtered_data()[[input$numvar]]
+    x <- x[!is.na(x)]
+    req(length(x) > 0)
     
-    updateSliderInput(session, "sample_size",
-                      min   = min(10, n),
-                      max   = n,
-                      value = min(input$sample_size, n))
+    rng <- range(x)
+    
+    updateSliderInput(session, "num_range",
+                      min   = floor(rng[1]),
+                      max   = ceiling(rng[2]),
+                      value = c(floor(rng[1]), ceiling(rng[2])))
   })
   
-  sampled_data <- reactive({
-    req(input$sample_size)
+  subset_data <- eventReactive(input$update, {
     filtered_data() |>
-      filter(!is.na(.data[[input$xvar]])) |>
-      slice_sample(n = min(input$sample_size, nrow(filtered_data())))
+      filter(!is.na(.data[[input$numvar]]),
+             .data[[input$numvar]] >= input$num_range[1],
+             .data[[input$numvar]] <= input$num_range[2])
   })
   
   output$plot <- renderPlot({
     validate(
-      need(!is.null(sample_corr$corr_data), "Please select your variables, subset, and click the 'Get a Sample!' button.")
+      need(input$update > 0,
+           "Please select your variables and subset range, then click **Show Me**")
     )
-    ggplot(sampled_data, aes(x = xvar, y = )) +
-      geom_point()
+    
+    d <- subset_data()
+    req(nrow(d)>0)
+    
+    d$group <- as.factor(d[[input$cat]])
+    
+    ggplot(d, aes(x = group, y = .data[[input$numvar]])) +
+      geom_boxplot()
   })
   
   }
