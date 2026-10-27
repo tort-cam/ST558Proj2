@@ -12,6 +12,7 @@ For this project, I have chosen to analyze NFL plays data from 2009-2016, pulled
 #| warnings: hold
 library(tidyverse)
 library(RKaggle)
+library(patchwork)
 ```
 
 ```{r}
@@ -56,7 +57,9 @@ ggplot(data = penalties, aes(x = count, y = PenaltyType))+
   geom_bar(stat = "identity", color = "#595959", linewidth = .1)+
   geom_text(aes(label = count), hjust = -.2, size = 3)+
   xlim(0, 5000)+
-  labs(x = "Number of times penalty was accepted", y = "Type of penalty")
+  labs(x = "Number of times penalty was accepted", 
+       y = "Type of penalty",
+       title = "Penalty Type Frequency")
 ```
 ```{r}
 #| results: hold
@@ -142,7 +145,7 @@ playTypes |>
     facet_wrap(~ PlayType, nrow = 1) +
   # coord_flip() +
   # scale_y_continuous(labels = scales::percent) +
-    labs(x = NULL, y = "Percent of plays on that down") +
+    labs(x = NULL, y = "Percent of plays on that down", title = "Down distribution by play type") +
   theme_minimal()
 ```
 Here I'll take a look at each team's yearly stats - running and passing plays, and touchdowns scored.
@@ -181,7 +184,8 @@ teamstats |>
          y = "Total touchdowns", 
          title = "2012 Offensive Efficiency - SB winner in green")
 ```
-Trying out an animated plot! New for me!
+## Animated scatter plot
+Trying out an animated plot! This is my not-covered-in-class plot
 ```{r}
 library(gganimate)
 library(gifski)
@@ -215,5 +219,67 @@ teamstats |>
   exit_shrink() +
   ## Style of movement choice
   ease_aes('sine-in-out')
+```
+
+## Numeric Summaries - Completed passes
+```{r}
+columnsOfInterest <- c(3, 5, 16, 21, 23, 33, 36, 37, 39, 40)
+passes <- plays|>
+  filter(PlayType == "Pass" & PassOutcome == "Complete")|>
+  select(all_of(columnsOfInterest))|>
+  drop_na()
+
+passes|>
+  group_by(PassLocation)|>
+  summarize(airmean = mean(AirYards),
+            airsd = sd(AirYards),
+            airmed = median(AirYards),
+            groundmean = mean(YardsAfterCatch),
+            groundsd = sd(YardsAfterCatch),
+            groundmed = median(YardsAfterCatch))
+```
+Above, we see that passes up the middle go further forward in the air, while passes on the outside tend to be carried further after the catch - Let's make a boxplot to see this:
+
+## Boxplots
+
+```{r}
+air <- passes|>
+  group_by(PassLocation)|>
+  ggplot(aes(x = PassLocation, y = AirYards))+
+  ylim(-25,100)+
+  geom_boxplot()+
+  labs(x = "Pass Location", y = "Air Yards Gained")
+
+
+ground <- passes|>
+  group_by(PassLocation)|>
+  ggplot(aes(x = PassLocation, y = YardsAfterCatch))+
+  ylim(-25,100)+
+  geom_boxplot()+
+  labs(x = "Pass Location", y = "Yards after catch")
+
+cat("Passing yards gained before and after catch, by pass location")
+air | ground
+```
+Above, I manually set the y limits, so a few (10) outliers didn't fit, hence the warnings.
+
+## Fun plot
+One more, for fun, with "Yards.Gained"!
+```{r}
+passes|>
+  ggplot(aes(x = PassLocation, y = Yards.Gained))+
+    geom_hline(yintercept = 10, color = "yellow", size = 1)+
+  geom_hline(yintercept = 0, color = "blue", size = 1)+
+  geom_boxplot(outlier.color = "white", outlier.size = .75, fill = "chocolate4", color = "white")+
+
+  scale_y_continuous(limits = c(-25, 100),
+                     breaks = seq(-20, 100, by = 10)) +
+  theme(
+    panel.background   = element_rect(fill = "darkgreen"),
+    panel.grid.major.y = element_line(color = "white"),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor   = element_blank()
+  )+
+  labs(x = "Pass Location", y = "Yards Gained", title = "Yards gained by pass location")
 ```
 
