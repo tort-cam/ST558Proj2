@@ -1,15 +1,16 @@
 library(shiny)
 library(tidyverse)
 library(patchwork)
-#library(RKaggle)
+library(RKaggle)
+library(rsconnect)
 library(shinyWidgets)
 library(DT)
 
-## TO BE RE-ADDED ONCE COMPLETE ##
 #df <- RKaggle::get_dataset("maxhorowitz/nflplaybyplay2009to2016")
 #plays <- df[[1]]
 #remove(df)
 
+## This was for ease of testing
 plays <- read_csv("NFL Play by Play 2009-2016 (v3).csv")
 
 ## QMD item, needed for premade plotting
@@ -335,17 +336,18 @@ ui <- fluidPage(
                       href = "https://www.kaggle.com/datasets/maxhorowitz/nflplaybyplay2009to2016/data",
                       target = "_blank"),
                     "and was created by a group of Carnegie Mellon University researchers by scraping the 
-                      NFL's official API - It includes far more data than I explore here.\n
-                     The sidebar on the Subset Scatterplot allows you to select and subset the data. 
+                      NFL's official API - It includes far more data than I explore here."),
+                  p("The sidebar on the Subset Scatterplot allows you to select and subset the data. 
                      You can choose to subset by year, play location, and quarter, and further subset
                      by setting ranges for your selected x and y variables."),
-                  p("The Subset Scatterplot tab allows for custom data exploration, as outlined above. 
-                     Data Download provides a link to download the current subset of the data you've selected 
-                     in the Subset Scatterplot tab. Data Exploration lets you subset and visualize in greater 
+                  p("The Subset Scatterplot tab allows for custom data exploration, as outlined above."),
+                  p("Data Download provides a link to download the current subset of the data you've selected 
+                     in the Subset Scatterplot tab."),
+                  p("Data Exploration lets you subset and visualize in greater 
                     detail, as opposed to the scatterplot format of Subset Scatterplot. Here, you can also see
                     the figures I've made in my .qmd file by clicking the 'pre-made' boxes. Even though 
                     they are pre-made, they still use the data subset chosen on the sidebar!"),
-                  img(src = "https://toppng.com/uploads/preview/nfl-logo-vector-1157397131993ne6xvvwg.png", width = "300px")
+                  img(src = "https://cdn.freebiesupply.com/logos/large/2x/nfl-logo-bw.png", width = "300px")
          ),
          
          ## Subset plot
@@ -553,6 +555,7 @@ server <- function(input, output, session) {
     tableServer(id, explore_data)
   })
  
+  ## Render premade figures
   output$pgraph_box <- renderUI({
     req("pgraph" %in% input$figureType)
     tagList(
@@ -567,6 +570,7 @@ server <- function(input, output, session) {
     )
   })
   
+  ## Render premade tables
   output$pnum_box <- renderUI({
     req("pnum" %in% input$figureType)
     tagList(
@@ -585,6 +589,7 @@ server <- function(input, output, session) {
     )
   })
   
+  ## ALL PREMADE FIGURES AND TABLES ARE BELOW ##
   output$pre_penTable <- renderDT({
     id <- showNotification("Building the tables...",
                            duration = 25, closeButton = FALSE)

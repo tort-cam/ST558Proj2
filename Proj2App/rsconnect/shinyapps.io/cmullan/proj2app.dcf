@@ -1,0 +1,10 @@
+name: proj2app
+title:
+username: cmullan
+account: cmullan
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 18307584
+bundleId: 12752331
+url: https://cmullan.shinyapps.io/proj2app/
+version: 1
