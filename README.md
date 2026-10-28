@@ -1,1 +1,2 @@
-I am reading!
+Hello! This app was made by Cameron Mullaney for ST558 Project 2!
+This app explores passing and runnings plays in the NFL from 2009-2016. This data comes from "NFL Play by Play 2009-2016" dataset on Kaggle (https://www.kaggle.com/datasets/maxhorowitz/nflplaybyplay2009to2016/data) and was created by a group of Carnegie Mellon University researchers by scraping the NFL's official API - It includes far more data than I explore here. 
