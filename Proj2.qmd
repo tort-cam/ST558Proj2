@@ -3,6 +3,8 @@ title: "EDA"
 author: "Cameron Mullaney"
 date: today
 format: html
+execute:
+  warning: false
 ---
 ### Intro
 For this project, I have chosen to analyze NFL plays data from 2009-2016, pulled from https://www.kaggle.com/datasets/schmadam97/nba-playbyplay-data-20182019 . I will start by reading in some packages I'll need to do my preliminary data exploration.
@@ -45,7 +47,6 @@ penalties <- plays |>
 penalties |>
   knitr::kable()
 ```
-That's much better, with a much more uniform 57 types, rather than 73
 From this table, clearly false starts are much more common than other penalty types, but looking at the top of the table, it seems like the Defense is the most common committer of penalties!
 
 ## Bar plot
@@ -61,6 +62,7 @@ ggplot(data = penalties, aes(x = count, y = PenaltyType))+
        y = "Type of penalty",
        title = "Penalty Type Frequency")
 ```
+## Two-way contingency table
 ```{r}
 #| results: hold
 playTypes <- plays |>
@@ -76,7 +78,6 @@ playTypes <- plays |>
   mutate(total = sum(n))
 ```
 
-## Two-way contingency table
 ```{r}
 #| results: hold
 cat("The table below shows us the proportion of each kind of play per down:\n")
@@ -163,7 +164,6 @@ teamstats <- plays |>
          passes = sum(PlayType == "Pass"),
          runs = sum(PlayType == "Run"))|>
   drop_na()
-teamstats
 ```
 ## Scatter plot
 Let's take a closer look at the 2012 season
@@ -261,7 +261,7 @@ ground <- passes|>
 cat("Passing yards gained before and after catch, by pass location")
 air | ground
 ```
-Above, I manually set the y limits, so a few (10) outliers didn't fit, hence the warnings.
+Above, I manually set the y limits to match, so a few (10) outliers didn't fit, hence the warnings.
 
 ## Fun plot
 One more, for fun, with "Yards.Gained"!
