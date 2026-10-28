@@ -268,7 +268,7 @@ One more, for fun, with "Yards.Gained"!
 ```{r}
 passes|>
   ggplot(aes(x = PassLocation, y = Yards.Gained))+
-    geom_hline(yintercept = 10, color = "yellow", size = 1)+
+  geom_hline(yintercept = 10, color = "yellow", size = 1)+
   geom_hline(yintercept = 0, color = "blue", size = 1)+
   geom_boxplot(outlier.color = "white", outlier.size = .75, fill = "chocolate4", color = "white")+
 
@@ -282,4 +282,5 @@ passes|>
   )+
   labs(x = "Pass Location", y = "Yards Gained", title = "Yards gained by pass location")
 ```
+
 
