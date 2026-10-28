@@ -48,7 +48,7 @@ penalties |>
 That's much better, with a much more uniform 57 types, rather than 73
 From this table, clearly false starts are much more common than other penalty types, but looking at the top of the table, it seems like the Defense is the most common committer of penalties!
 
-## Histogram
+## Bar plot
 Let's take a quick look at a plot of this information:
 ```{r}
 #| fig-height: 9
@@ -268,8 +268,8 @@ One more, for fun, with "Yards.Gained"!
 ```{r}
 passes|>
   ggplot(aes(x = PassLocation, y = Yards.Gained))+
-  geom_hline(yintercept = 10, color = "yellow", size = 1)+
-  geom_hline(yintercept = 0, color = "blue", size = 1)+
+  geom_hline(yintercept = 10, color = "yellow", linewidth = 1)+
+  geom_hline(yintercept = 0, color = "blue", linewidth = 1)+
   geom_boxplot(outlier.color = "white", outlier.size = .75, fill = "chocolate4", color = "white")+
 
   scale_y_continuous(limits = c(-25, 100),
