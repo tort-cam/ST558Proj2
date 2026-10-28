@@ -4,8 +4,10 @@ library(patchwork)
 library(RKaggle)
 library(rsconnect)
 library(shinyWidgets)
+library(shinycssloaders)
 library(DT)
 
+#rsconnect::deployApp('C:/Users/turtl/OneDrive/Apps/Desktop/School/NC State/558/ST558Proj2/Proj2App')
 #df <- RKaggle::get_dataset("maxhorowitz/nflplaybyplay2009to2016")
 #plays <- df[[1]]
 #remove(df)
@@ -55,7 +57,7 @@ graphUI <- function(id) {
         selectInput(ns("fill"),  "Color by", choices = c("None" = "none", cat_vars)),
         selectInput(ns("facet"), "Facet by", choices = c("None" = "none", cat_vars))
       ),
-      plotOutput(ns("plot"), height = "450px")
+      plotOutput(ns("plot"), height = "450px") |> withSpinner()
   )
 }
 
@@ -165,7 +167,7 @@ tableUI <- function(id) {
         
         uiOutput(ns("options"))
       ),
-      DTOutput(ns("table"))
+      DTOutput(ns("table")) |> withSpinner()
   )
 }
 
@@ -353,7 +355,7 @@ ui <- fluidPage(
          ## Subset plot
          
          tabPanel("Subset Scatterplot",
-         plotOutput("plot")
+         plotOutput("plot") |> withSpinner()
         ),
    
           
@@ -560,13 +562,13 @@ server <- function(input, output, session) {
     req("pgraph" %in% input$figureType)
     tagList(
       h4("Pre-made graphics"),
-      plotOutput("pre_playByDown"),br(),
-      plotOutput("pre_downByPlay"),br(),
-      plotOutput("pre_offEff"),br(),
-      p("      Passing yards gained before and after catch, by pass location"),
-      plotOutput("pre_passes"),br(),
-      plotOutput("pre_football"),br(),
-      plotOutput("pre_penalties")
+      plotOutput("pre_playByDown") |> withSpinner(),br(),
+      plotOutput("pre_downByPlay") |> withSpinner(),br(),
+      plotOutput("pre_offEff") |> withSpinner(),br(),
+      p("Passing yards gained before and after catch, by pass location"),
+      plotOutput("pre_passes") |> withSpinner(),br(),
+      plotOutput("pre_football") |> withSpinner(),br(),
+      plotOutput("pre_penalties") |> withSpinner()
     )
   })
   
@@ -576,24 +578,22 @@ server <- function(input, output, session) {
     tagList(
       h4("Pre-made tables"),
       p("Accepted Penalties"),
-      DTOutput("pre_penTable"), br(),
+      DTOutput("pre_penTable") |> withSpinner(), br(),
       p("Play Type Frequency by Down"),
       
-      DTOutput("pre_playTable"), br(),
+      DTOutput("pre_playTable") |> withSpinner(), br(),
       p("Seasonal Offensive Stats"),
       
-      DTOutput("pre_effTable"), br(),
+      DTOutput("pre_effTable") |> withSpinner(), br(),
       p("Pass Efficiency by Location"),
       
-      DTOutput("pre_passLocTable")
+      DTOutput("pre_passLocTable") |> withSpinner()
     )
   })
   
   ## ALL PREMADE FIGURES AND TABLES ARE BELOW ##
   output$pre_penTable <- renderDT({
-    id <- showNotification("Building the tables...",
-                           duration = 25, closeButton = FALSE)
-    on.exit(removeNotification(id))
+    
     subset_data() |>
       ## Many PenaltyType cells have unnecessary commas and additional info, 
       ## this line shortens those cells' text
@@ -669,11 +669,8 @@ server <- function(input, output, session) {
   })
   
   output$pre_playByDown <- renderPlot({
-    id <- showNotification("Building the figures...",
-                           duration = 25, closeButton = FALSE)
-    on.exit(removeNotification(id))
     
-    subset_data() |>
+      subset_data() |>
       
       # Drop NA values in down
       filter(!is.na(down))|>
